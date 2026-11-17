@@ -72,7 +72,7 @@ no usable signal in this dataset. The web page shows its score next to this cave
 
 `web/index.html` is a single static page. It loads `web/model.json`, which holds the logistic
 regression coefficients, builds the form from it, and computes the score in the browser.
-There is no backend. Deployed with Vercel (`vercel.json` serves `web/`).
+There is no backend. Live at https://cipn-prediction.vercel.app (Vercel; `vercel.json` serves `web/`).
 
 ## Reproduce
 
