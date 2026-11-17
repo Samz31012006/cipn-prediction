@@ -1,0 +1,86 @@
+{
+  "data": {
+    "patients_in_baseline_file": 283,
+    "after_dropping_untreated": 275,
+    "dropped_grade_minus1": 3,
+    "n_patients": 272,
+    "n_positive": 128,
+    "positive_rate": 0.47058823529411764
+  },
+  "dose_file_audit": {
+    "rows_after_cleaning": 2497,
+    "patients_not_in_baseline": [
+      26,
+      80,
+      231,
+      707,
+      798
+    ],
+    "rows_dropped_implausible_cycleno": [
+      2928,
+      -2
+    ]
+  },
+  "cv": {
+    "splits": 5,
+    "repeats": 10,
+    "bootstrap": 2000,
+    "seed": 42
+  },
+  "majority_class_accuracy": 0.5294117647058824,
+  "models": {
+    "Logistic regression": {
+      "AUC": {
+        "estimate": 0.5108751085069445,
+        "ci95": [
+          0.45091288248697914,
+          0.5677581108940973
+        ]
+      },
+      "Accuracy": {
+        "estimate": 0.5235294117647058,
+        "ci95": [
+          0.48345588235294124,
+          0.5643382352941175
+        ]
+      },
+      "Brier": {
+        "estimate": 0.2636804564215882,
+        "ci95": [
+          0.2519486324890344,
+          0.2769502919144546
+        ]
+      }
+    },
+    "Random forest": {
+      "AUC": {
+        "estimate": 0.5000461154513889,
+        "ci95": [
+          0.44052124023437494,
+          0.5630175103081597
+        ]
+      },
+      "Accuracy": {
+        "estimate": 0.54375,
+        "ci95": [
+          0.5040349264705882,
+          0.5860386029411765
+        ]
+      },
+      "Brier": {
+        "estimate": 0.2547980356276426,
+        "ci95": [
+          0.24792824614642928,
+          0.26182661609295427
+        ]
+      }
+    }
+  },
+  "auc_difference_forest_minus_logistic": {
+    "estimate": -0.010828993055555625,
+    "ci95": [
+      -0.0355774603949652,
+      0.014456922743055574
+    ]
+  }
+}

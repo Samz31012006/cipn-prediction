@@ -1,0 +1,11 @@
+# Raw trial data is NOT redistributed here: obtain it from Project Data Sphere.
+data/raw/
+data/*.csv
+
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+.vercel/
+.claude/
+results/reference_predictions.json

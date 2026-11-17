@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CIPN Risk Score</title>
+<meta name="description" content="A proof-of-pipeline demo: logistic regression on public trial data. Not a medical tool.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4f3ff;
+    --bg-glow: #e3e0ff;
+    --card: #ffffff;
+    --ink: #17162b;
+    --muted: #6b6a85;
+    --line: #e7e6f2;
+    --chip: #f3f2fb;
+    --chip-hover: #eae8f8;
+    --accent: #5b4bdb;
+    --accent-2: #8a7bff;
+    --accent-ink: #ffffff;
+    --shadow: 0 1px 2px rgba(23,22,43,.04), 0 12px 40px -12px rgba(60,50,160,.18);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #100f1c;
+      --bg-glow: #221f4a;
+      --card: #1a1930;
+      --ink: #f0effa;
+      --muted: #9a98b8;
+      --line: #2b2a47;
+      --chip: #23223c;
+      --chip-hover: #2c2b4a;
+      --accent: #8a7bff;
+      --accent-2: #b3a8ff;
+      --accent-ink: #12102a;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 40px -12px rgba(0,0,0,.6);
+    }
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    color: var(--ink);
+    background:
+      radial-gradient(900px 420px at 50% -120px, var(--bg-glow), transparent 70%),
+      var(--bg);
+    -webkit-font-smoothing: antialiased;
+  }
+  main { max-width: 560px; margin: 0 auto; padding: 56px 16px 40px; }
+  header { text-align: center; margin-bottom: 28px; }
+  h1 { margin: 0 0 8px; font-size: 28px; font-weight: 700; letter-spacing: -0.02em; }
+  header p { margin: 0; color: var(--muted); font-size: 15px; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    padding: 28px;
+  }
+  form { display: grid; gap: 22px; }
+  fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+  legend {
+    padding: 0; margin-bottom: 9px;
+    font-size: 13px; font-weight: 600; color: var(--muted);
+    letter-spacing: .02em;
+  }
+  .options { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { position: relative; }
+  .chip input { position: absolute; opacity: 0; inset: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+  .chip span {
+    display: block; padding: 9px 15px;
+    border-radius: 999px; border: 1px solid transparent;
+    background: var(--chip); color: var(--ink);
+    font-size: 14px; font-weight: 500;
+    transition: background .15s, color .15s, box-shadow .15s, transform .1s;
+  }
+  .chip:hover span { background: var(--chip-hover); }
+  .chip input:checked + span {
+    background: var(--accent); color: var(--accent-ink);
+    box-shadow: 0 4px 14px -4px var(--accent);
+  }
+  .chip input:focus-visible + span { outline: 2px solid var(--accent-2); outline-offset: 2px; }
+  .chip input:active + span { transform: scale(.97); }
+
+  button[type=submit] {
+    margin-top: 4px;
+    appearance: none; border: 0; cursor: pointer;
+    padding: 15px 20px; border-radius: 14px;
+    font: inherit; font-size: 16px; font-weight: 600;
+    color: var(--accent-ink);
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    box-shadow: 0 8px 24px -8px var(--accent);
+    transition: transform .12s, box-shadow .2s, opacity .2s;
+  }
+  button[type=submit]:hover { transform: translateY(-1px); box-shadow: 0 12px 28px -8px var(--accent); }
+  button[type=submit]:active { transform: translateY(0); }
+  button[type=submit]:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 3px; }
+  .error { min-height: 18px; margin: -10px 0 -8px; color: #d6455d; font-size: 13px; text-align: center; }
+
+  .result {
+    margin-top: 22px; padding-top: 24px; border-top: 1px solid var(--line);
+    text-align: center;
+    animation: rise .45s ease both;
+  }
+  .result[hidden] { display: none; }
+  @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  .result .label { font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .score { margin: 6px 0 18px; font-size: 64px; font-weight: 700; letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .score small { font-size: 32px; font-weight: 600; }
+  .track { position: relative; height: 10px; border-radius: 999px; background: var(--chip); }
+  .fill { height: 100%; width: 0; border-radius: inherit; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width .7s cubic-bezier(.2,.8,.2,1); }
+  .base { position: absolute; top: -5px; width: 2px; height: 20px; border-radius: 2px; background: var(--ink); opacity: .55; }
+  .legend { margin-top: 12px; font-size: 12.5px; color: var(--muted); }
+
+  footer { margin-top: 22px; text-align: center; font-size: 12.5px; line-height: 1.6; color: var(--muted); }
+
+  @media (max-width: 480px) {
+    main { padding-top: 36px; }
+    .card { padding: 22px 18px; border-radius: 18px; }
+    h1 { font-size: 24px; }
+    .score { font-size: 54px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>CIPN Risk Score</h1>
+    <p>Enter baseline characteristics to see the model’s score.</p>
+  </header>
+
+  <section class="card">
+    <form id="form" novalidate></form>
+    <div id="result" class="result" hidden aria-live="polite">
+      <div class="label">Risk score</div>
+      <div class="score"><span id="pct">0</span><small>%</small></div>
+      <div class="track"><div id="fill" class="fill"></div><div id="base" class="base"></div></div>
+      <div class="legend" id="legend"></div>
+    </div>
+  </section>
+
+  <footer id="foot">Proof of pipeline on public trial data. Not a medical tool.</footer>
+</main>
+
+<script>
+(async function () {
+  const form = document.getElementById('form');
+  let model;
+  try {
+    model = await (await fetch('model.json')).json();
+  } catch (e) {
+    form.innerHTML = '<p class="error">Could not load the model file.</p>';
+    return;
+  }
+
+  // Build the form from the exported model definition.
+  form.innerHTML = model.fields.map(f => `
+    <fieldset>
+      <legend>${f.label}</legend>
+      <div class="options">
+        ${f.options.map(o => `
+          <label class="chip">
+            <input type="radio" name="${f.key}" value="${o.value}">
+            <span>${o.label}</span>
+          </label>`).join('')}
+      </div>
+    </fieldset>`).join('') +
+    '<div class="error" id="error" role="alert"></div>' +
+    '<button type="submit">Calculate score</button>';
+
+  const pct = document.getElementById('pct');
+  const fill = document.getElementById('fill');
+  const result = document.getElementById('result');
+  const error = document.getElementById('error');
+  const pctFmt = v => (v * 100).toFixed(0);
+
+  document.getElementById('base').style.left = `calc(${model.base_rate * 100}% - 1px)`;
+  document.getElementById('legend').textContent =
+    `Marker: ${pctFmt(model.base_rate)}% of the ${model.n_patients} training patients`;
+
+  if (model.cv_auc) {
+    const a = model.cv_auc;
+    document.getElementById('foot').innerHTML =
+      `Proof of pipeline on public trial data. Not a medical tool.<br>` +
+      `Cross-validated AUC ${a.estimate.toFixed(2)} (95% CI ${a.ci95[0].toFixed(2)}–${a.ci95[1].toFixed(2)}), ` +
+      `i.e. no better than chance.`;
+  }
+
+  function score(values) {
+    let z = model.intercept;
+    for (const f of model.fields) z += f.options.find(o => o.value === values[f.key]).coef;
+    return 1 / (1 + Math.exp(-z));
+  }
+
+  let raf, settle;
+  function animate(to) {
+    cancelAnimationFrame(raf);
+    const from = Number(pct.textContent) || 0, t0 = performance.now(), dur = 600;
+    const tick = now => {
+      const k = Math.min((now - t0) / dur, 1), e = 1 - Math.pow(1 - k, 3);
+      pct.textContent = Math.round(from + (to - from) * e);
+      if (k < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    // Guarantee the final value even if frames are throttled (e.g. background tab).
+    clearTimeout(settle);
+    settle = setTimeout(() => { cancelAnimationFrame(raf); pct.textContent = to; }, dur + 80);
+  }
+
+  form.addEventListener('change', () => { error.textContent = ''; });
+  form.addEventListener('submit', ev => {
+    ev.preventDefault();
+    const data = new FormData(form), values = {};
+    const missing = model.fields.filter(f => !(values[f.key] = data.get(f.key)));
+    if (missing.length) {
+      error.textContent = 'Please choose an option for: ' + missing.map(f => f.label).join(', ');
+      return;
+    }
+    const p = score(values);
+    result.hidden = false;
+    animate(Math.round(p * 100));
+    requestAnimationFrame(() => { fill.style.width = (p * 100) + '%'; });
+    result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  });
+})();
+</script>
+</body>
+</html>

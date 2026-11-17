@@ -1,0 +1,198 @@
+{
+  "intercept": -0.740181583302435,
+  "fields": [
+    {
+      "key": "agecat",
+      "label": "Age group",
+      "options": [
+        {
+          "value": "1",
+          "label": "20\u201349",
+          "coef": -0.007295093797728077
+        },
+        {
+          "value": "2",
+          "label": "50\u201369",
+          "coef": 0.039926332076898476
+        },
+        {
+          "value": "3",
+          "label": "70+",
+          "coef": -0.033606466438512866
+        }
+      ]
+    },
+    {
+      "key": "sex_id",
+      "label": "Sex",
+      "options": [
+        {
+          "value": "1",
+          "label": "Male",
+          "coef": 0.040676447608229
+        },
+        {
+          "value": "2",
+          "label": "Female",
+          "coef": -0.04165167576756951
+        }
+      ]
+    },
+    {
+      "key": "racecat",
+      "label": "Race",
+      "options": [
+        {
+          "value": "1",
+          "label": "White",
+          "coef": 0.1859208945409738
+        },
+        {
+          "value": "2",
+          "label": "Black",
+          "coef": 0.7363419999829038
+        },
+        {
+          "value": "3",
+          "label": "Other",
+          "coef": -0.30468392049656823
+        },
+        {
+          "value": "unknown",
+          "label": "Unknown",
+          "coef": -0.6185542021866527
+        }
+      ]
+    },
+    {
+      "key": "strat1_taxane",
+      "label": "Prior adjuvant taxane",
+      "options": [
+        {
+          "value": "1",
+          "label": "Yes",
+          "coef": -0.0670589421677713
+        },
+        {
+          "value": "2",
+          "label": "No",
+          "coef": 0.06608371400842675
+        }
+      ]
+    },
+    {
+      "key": "anyvisceral",
+      "label": "Visceral disease",
+      "options": [
+        {
+          "value": "1",
+          "label": "Yes",
+          "coef": -0.18814936942939497
+        },
+        {
+          "value": "0",
+          "label": "No",
+          "coef": -0.19331922772765353
+        },
+        {
+          "value": "unknown",
+          "label": "Unknown",
+          "coef": 0.38049336899770686
+        }
+      ]
+    },
+    {
+      "key": "dficat",
+      "label": "Disease-free interval",
+      "options": [
+        {
+          "value": "0",
+          "label": "De novo",
+          "coef": -0.2610919253245263
+        },
+        {
+          "value": "1",
+          "label": "Up to 1 yr",
+          "coef": 0.039431640133404174
+        },
+        {
+          "value": "2",
+          "label": "1\u20132 yrs",
+          "coef": 0.11382944754786868
+        },
+        {
+          "value": "3",
+          "label": "2+ yrs",
+          "coef": 0.10685560948390817
+        }
+      ]
+    },
+    {
+      "key": "clinstage4",
+      "label": "Clinical stage",
+      "options": [
+        {
+          "value": "1",
+          "label": "Stage IV",
+          "coef": -0.02471071015382833
+        },
+        {
+          "value": "0",
+          "label": "Not stage IV",
+          "coef": 0.5011463508787432
+        },
+        {
+          "value": "unknown",
+          "label": "Unknown",
+          "coef": -0.47741086888425754
+        }
+      ]
+    },
+    {
+      "key": "hormone",
+      "label": "Hormone receptor",
+      "options": [
+        {
+          "value": "1",
+          "label": "Positive",
+          "coef": 0.08220211500047116
+        },
+        {
+          "value": "0",
+          "label": "Negative",
+          "coef": -0.08317734315981337
+        }
+      ]
+    },
+    {
+      "key": "her2",
+      "label": "HER2",
+      "options": [
+        {
+          "value": "1",
+          "label": "Positive",
+          "coef": -0.03577385978429993
+        },
+        {
+          "value": "0",
+          "label": "Negative",
+          "coef": 0.5570870088268194
+        },
+        {
+          "value": "unknown",
+          "label": "Unknown",
+          "coef": -0.5222883772018628
+        }
+      ]
+    }
+  ],
+  "base_rate": 0.47058823529411764,
+  "n_patients": 272,
+  "cv_auc": {
+    "estimate": 0.5108751085069445,
+    "ci95": [
+      0.45091288248697914,
+      0.5677581108940973
+    ]
+  }
+}
