@@ -1,198 +1,407 @@
 {
-  "intercept": -0.740181583302435,
-  "fields": [
+ "baseline_logit": -0.12518469938371224,
+ "fields": [
+  {
+   "key": "agecat",
+   "name": "Age group",
+   "type": "number",
+   "label": "Age",
+   "unit": "years",
+   "min": 18,
+   "max": 100,
+   "bins": [
     {
-      "key": "agecat",
-      "label": "Age group",
-      "options": [
-        {
-          "value": "1",
-          "label": "20\u201349",
-          "coef": -0.007295093797728077
-        },
-        {
-          "value": "2",
-          "label": "50\u201369",
-          "coef": 0.039926332076898476
-        },
-        {
-          "value": "3",
-          "label": "70+",
-          "coef": -0.033606466438512866
-        }
-      ]
+     "max": 49.999,
+     "value": "1"
     },
     {
-      "key": "sex_id",
-      "label": "Sex",
-      "options": [
-        {
-          "value": "1",
-          "label": "Male",
-          "coef": 0.040676447608229
-        },
-        {
-          "value": "2",
-          "label": "Female",
-          "coef": -0.04165167576756951
-        }
-      ]
+     "max": 69.999,
+     "value": "2"
     },
     {
-      "key": "racecat",
-      "label": "Race",
-      "options": [
-        {
-          "value": "1",
-          "label": "White",
-          "coef": 0.1859208945409738
-        },
-        {
-          "value": "2",
-          "label": "Black",
-          "coef": 0.7363419999829038
-        },
-        {
-          "value": "3",
-          "label": "Other",
-          "coef": -0.30468392049656823
-        },
-        {
-          "value": "unknown",
-          "label": "Unknown",
-          "coef": -0.6185542021866527
-        }
-      ]
-    },
-    {
-      "key": "strat1_taxane",
-      "label": "Prior adjuvant taxane",
-      "options": [
-        {
-          "value": "1",
-          "label": "Yes",
-          "coef": -0.0670589421677713
-        },
-        {
-          "value": "2",
-          "label": "No",
-          "coef": 0.06608371400842675
-        }
-      ]
-    },
-    {
-      "key": "anyvisceral",
-      "label": "Visceral disease",
-      "options": [
-        {
-          "value": "1",
-          "label": "Yes",
-          "coef": -0.18814936942939497
-        },
-        {
-          "value": "0",
-          "label": "No",
-          "coef": -0.19331922772765353
-        },
-        {
-          "value": "unknown",
-          "label": "Unknown",
-          "coef": 0.38049336899770686
-        }
-      ]
-    },
-    {
-      "key": "dficat",
-      "label": "Disease-free interval",
-      "options": [
-        {
-          "value": "0",
-          "label": "De novo",
-          "coef": -0.2610919253245263
-        },
-        {
-          "value": "1",
-          "label": "Up to 1 yr",
-          "coef": 0.039431640133404174
-        },
-        {
-          "value": "2",
-          "label": "1\u20132 yrs",
-          "coef": 0.11382944754786868
-        },
-        {
-          "value": "3",
-          "label": "2+ yrs",
-          "coef": 0.10685560948390817
-        }
-      ]
-    },
-    {
-      "key": "clinstage4",
-      "label": "Clinical stage",
-      "options": [
-        {
-          "value": "1",
-          "label": "Stage IV",
-          "coef": -0.02471071015382833
-        },
-        {
-          "value": "0",
-          "label": "Not stage IV",
-          "coef": 0.5011463508787432
-        },
-        {
-          "value": "unknown",
-          "label": "Unknown",
-          "coef": -0.47741086888425754
-        }
-      ]
-    },
-    {
-      "key": "hormone",
-      "label": "Hormone receptor",
-      "options": [
-        {
-          "value": "1",
-          "label": "Positive",
-          "coef": 0.08220211500047116
-        },
-        {
-          "value": "0",
-          "label": "Negative",
-          "coef": -0.08317734315981337
-        }
-      ]
-    },
-    {
-      "key": "her2",
-      "label": "HER2",
-      "options": [
-        {
-          "value": "1",
-          "label": "Positive",
-          "coef": -0.03577385978429993
-        },
-        {
-          "value": "0",
-          "label": "Negative",
-          "coef": 0.5570870088268194
-        },
-        {
-          "value": "unknown",
-          "label": "Unknown",
-          "coef": -0.5222883772018628
-        }
-      ]
+     "max": null,
+     "value": "3"
     }
-  ],
-  "base_rate": 0.47058823529411764,
-  "n_patients": 272,
-  "cv_auc": {
+   ],
+   "help": "Grouped as 20–49, 50–69, 70+",
+   "options": [
+    {
+     "value": "1",
+     "label": "20–49",
+     "contribution": -0.02765305064231886
+    },
+    {
+     "value": "2",
+     "label": "50–69",
+     "contribution": 0.019568375232307693
+    },
+    {
+     "value": "3",
+     "label": "70+",
+     "contribution": -0.05396442328310365
+    }
+   ]
+  },
+  {
+   "key": "sex_id",
+   "name": "Sex",
+   "type": "select",
+   "label": "Sex",
+   "options": [
+    {
+     "value": "1",
+     "label": "Male",
+     "contribution": 0.08051206183074414
+    },
+    {
+     "value": "2",
+     "label": "Female",
+     "contribution": -0.0018160615450543774
+    }
+   ]
+  },
+  {
+   "key": "racecat",
+   "name": "Race",
+   "type": "select",
+   "label": "Race",
+   "options": [
+    {
+     "value": "1",
+     "label": "White",
+     "contribution": -0.041774088776710766
+    },
+    {
+     "value": "2",
+     "label": "Black",
+     "contribution": 0.5086470166652193
+    },
+    {
+     "value": "3",
+     "label": "Other",
+     "contribution": -0.5323789038142528
+    },
+    {
+     "value": "unknown",
+     "label": "Unknown",
+     "contribution": -0.8462491855043373
+    }
+   ]
+  },
+  {
+   "key": "strat1_taxane",
+   "name": "Prior adjuvant taxane",
+   "type": "select",
+   "label": "Prior adjuvant taxane",
+   "options": [
+    {
+     "value": "1",
+     "label": "Yes",
+     "contribution": -0.07440324903964009
+    },
+    {
+     "value": "2",
+     "label": "No",
+     "contribution": 0.05873940713655795
+    }
+   ]
+  },
+  {
+   "key": "anyvisceral",
+   "name": "Visceral disease",
+   "type": "select",
+   "label": "Visceral disease",
+   "options": [
+    {
+     "value": "1",
+     "label": "Yes",
+     "contribution": -0.005226419150283407
+    },
+    {
+     "value": "0",
+     "label": "No",
+     "contribution": -0.010396277448541963
+    },
+    {
+     "value": "unknown",
+     "label": "Unknown",
+     "contribution": 0.5634163192768185
+    }
+   ]
+  },
+  {
+   "key": "dficat",
+   "name": "Disease-free interval",
+   "type": "number",
+   "label": "Disease-free interval",
+   "unit": "years",
+   "min": 0,
+   "max": 40,
+   "step": 0.1,
+   "bins": [
+    {
+     "max": 0,
+     "value": "0"
+    },
+    {
+     "max": 1,
+     "value": "1"
+    },
+    {
+     "max": 2,
+     "value": "2"
+    },
+    {
+     "max": null,
+     "value": "3"
+    }
+   ],
+   "help": "Years from first diagnosis to first recurrence; 0 = de novo",
+   "options": [
+    {
+     "value": "0",
+     "label": "De novo",
+     "contribution": -0.3112994751579572
+    },
+    {
+     "value": "1",
+     "label": "Up to 1 yr",
+     "contribution": -0.010775909700026731
+    },
+    {
+     "value": "2",
+     "label": "1–2 yrs",
+     "contribution": 0.06362189771443777
+    },
+    {
+     "value": "3",
+     "label": "2+ yrs",
+     "contribution": 0.05664805965047726
+    }
+   ]
+  },
+  {
+   "key": "clinstage4",
+   "name": "Clinical stage",
+   "type": "select",
+   "label": "Clinical stage",
+   "options": [
+    {
+     "value": "1",
+     "label": "Stage IV",
+     "contribution": -0.008388318809867592
+    },
+    {
+     "value": "0",
+     "label": "Not stage IV",
+     "contribution": 0.5174687422227039
+    },
+    {
+     "value": "unknown",
+     "label": "Unknown",
+     "contribution": -0.4610884775402968
+    }
+   ]
+  },
+  {
+   "key": "hormone",
+   "name": "Hormone receptor",
+   "type": "select",
+   "label": "Hormone receptor",
+   "options": [
+    {
+     "value": "1",
+     "label": "Positive",
+     "contribution": 0.04560095353684317
+    },
+    {
+     "value": "0",
+     "label": "Negative",
+     "contribution": -0.11977850462344136
+    }
+   ]
+  },
+  {
+   "key": "her2",
+   "name": "HER2",
+   "type": "select",
+   "label": "HER2",
+   "options": [
+    {
+     "value": "1",
+     "label": "Positive",
+     "contribution": -0.5476457412174071
+    },
+    {
+     "value": "0",
+     "label": "Negative",
+     "contribution": 0.04521512739371225
+    },
+    {
+     "value": "unknown",
+     "label": "Unknown",
+     "contribution": -1.0341602586349699
+    }
+   ]
+  }
+ ],
+ "base_rate": 0.47058823529411764,
+ "n_patients": 272,
+ "n_positive": 128,
+ "n_enrolled": 283,
+ "served_model": "Logistic regression (C=1)",
+ "majority_accuracy": 0.5294117647058824,
+ "cv": {
+  "splits": 5,
+  "repeats": 10,
+  "bootstrap": 2000,
+  "seed": 42
+ },
+ "cv_models": {
+  "Logistic regression (C=1)": {
+   "AUC": {
     "estimate": 0.5108751085069445,
     "ci95": [
-      0.45091288248697914,
-      0.5677581108940973
+     0.45091288248697914,
+     0.5677581108940973
     ]
+   },
+   "Accuracy": {
+    "estimate": 0.5235294117647058,
+    "ci95": [
+     0.48345588235294124,
+     0.5643382352941175
+    ]
+   },
+   "Brier": {
+    "estimate": 0.2636804564215882,
+    "ci95": [
+     0.2519486324890344,
+     0.2769502919144546
+    ]
+   }
+  },
+  "Logistic regression (C=0.1)": {
+   "AUC": {
+    "estimate": 0.4853732638888889,
+    "ci95": [
+     0.4289462619357639,
+     0.5412841118706597
+    ]
+   },
+   "Accuracy": {
+    "estimate": 0.5272058823529413,
+    "ci95": [
+     0.4908088235294118,
+     0.5632352941176471
+    ]
+   },
+   "Brier": {
+    "estimate": 0.25518797637722856,
+    "ci95": [
+     0.2498790714503069,
+     0.26099209763323555
+    ]
+   }
+  },
+  "Logistic + interactions (C=0.1)": {
+   "AUC": {
+    "estimate": 0.5054253472222221,
+    "ci95": [
+     0.4495767550998264,
+     0.5646949598524305
+    ]
+   },
+   "Accuracy": {
+    "estimate": 0.5268382352941176,
+    "ci95": [
+     0.48895220588235294,
+     0.5676470588235294
+    ]
+   },
+   "Brier": {
+    "estimate": 0.25656207194064423,
+    "ci95": [
+     0.24905862282761915,
+     0.26410342115237495
+    ]
+   }
+  },
+  "Random forest": {
+   "AUC": {
+    "estimate": 0.5000461154513889,
+    "ci95": [
+     0.44052124023437494,
+     0.5630175103081597
+    ]
+   },
+   "Accuracy": {
+    "estimate": 0.54375,
+    "ci95": [
+     0.5040349264705882,
+     0.5860386029411765
+    ]
+   },
+   "Brier": {
+    "estimate": 0.2547980356276426,
+    "ci95": [
+     0.24792824614642928,
+     0.2618266160929543
+    ]
+   }
+  },
+  "Gradient boosting": {
+   "AUC": {
+    "estimate": 0.5102674696180556,
+    "ci95": [
+     0.44957411024305555,
+     0.5700124782986111
+    ]
+   },
+   "Accuracy": {
+    "estimate": 0.5261029411764706,
+    "ci95": [
+     0.48235294117647065,
+     0.5698529411764707
+    ]
+   },
+   "Brier": {
+    "estimate": 0.26732800913005644,
+    "ci95": [
+     0.2534804301247908,
+     0.2819094106774763
+    ]
+   }
   }
+ },
+ "auc_diff": {
+  "Logistic regression (C=0.1)": {
+   "estimate": -0.025501844618055602,
+   "ci95": [
+    -0.04063083224826394,
+    -0.008916422526041618
+   ]
+  },
+  "Logistic + interactions (C=0.1)": {
+   "estimate": -0.00544976128472241,
+   "ci95": [
+    -0.03749267578125013,
+    0.02510871039496528
+   ]
+  },
+  "Random forest": {
+   "estimate": -0.010828993055555625,
+   "ci95": [
+    -0.0355774603949652,
+    0.014456922743055574
+   ]
+  },
+  "Gradient boosting": {
+   "estimate": -0.0006076388888889284,
+   "ci95": [
+    -0.02224107530381937,
+    0.020332777235243193
+   ]
+  }
+ }
 }

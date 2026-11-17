@@ -47,32 +47,51 @@ number) and the 5 patients absent from the baseline file. The audit is reported 
 
 ## Models and evaluation
 
-Logistic regression (L2, C = 1) and a random forest (300 trees, depth 4,
-min leaf 5). Hyperparameters are fixed up front, with no tuning, so CV estimates are not
-inflated by selection.
+Five candidates, all on the same nine baseline features. The list and every hyperparameter
+were fixed before the second pass was run, and nothing was tuned on the CV folds:
 
-10 × repeated stratified 5-fold CV. Confidence intervals are 95% percentile intervals from
-a 2,000-draw stratified bootstrap over patients, applied to the out-of-fold predictions
-(see `src/evaluate.py` for why per-fold percentiles would be too narrow).
+1. Logistic regression, L2, C = 1 (first-pass baseline)
+2. Logistic regression, L2, C = 0.1 (stronger regularization)
+3. Logistic regression, C = 0.1, plus four a-priori interaction terms
+   (age × prior taxane, race × prior taxane, disease-free interval × prior taxane,
+   visceral × clinical stage)
+4. Random forest (300 trees, depth 4, min leaf 5)
+5. Gradient boosting (100 trees, depth 2, learning rate 0.05, subsample 0.8)
+
+Evaluation: 10 × repeated stratified 5-fold CV. 95% confidence intervals are percentile
+intervals from a 2,000-draw stratified bootstrap over patients, applied to the out-of-fold
+predictions (see `src/evaluate.py` for why per-fold percentiles would be too narrow).
+The rule for which model is served was also fixed in advance: a candidate replaces the baseline
+only if the paired bootstrap interval of its AUC difference excludes zero.
 
 | Model | AUC (95% CI) | Accuracy (95% CI) | Brier (95% CI) |
 |---|---|---|---|
-| Logistic regression | 0.511 (0.451–0.568) | 0.524 (0.483–0.564) | 0.264 (0.252–0.277) |
+| Logistic regression (C=1) | 0.511 (0.451–0.568) | 0.524 (0.483–0.564) | 0.264 (0.252–0.277) |
+| Logistic regression (C=0.1) | 0.485 (0.429–0.541) | 0.527 (0.491–0.563) | 0.255 (0.250–0.261) |
+| Logistic + interactions (C=0.1) | 0.505 (0.450–0.565) | 0.527 (0.489–0.568) | 0.257 (0.249–0.264) |
 | Random forest | 0.500 (0.441–0.563) | 0.544 (0.504–0.586) | 0.255 (0.248–0.262) |
+| Gradient boosting | 0.510 (0.450–0.570) | 0.526 (0.482–0.570) | 0.267 (0.253–0.282) |
 
-Majority-class accuracy is 0.529. AUC difference (forest − logistic): −0.011 (−0.036 to +0.014).
+Majority-class accuracy is 0.529; chance AUC is 0.5. Paired AUC differences against the
+baseline: C=0.1 −0.026 (−0.041 to −0.009); interactions −0.005 (−0.037 to +0.025); forest
+−0.011 (−0.036 to +0.014); boosting −0.001 (−0.022 to +0.020).
 
-**Result: with these nine baseline variables and 272 patients, neither model separates the
-classes better than chance**: both AUC intervals include 0.5, and accuracy does not beat always
-predicting the majority class. (In-sample AUC of the logistic model is ~0.65, which is
-what fitting noise looks like.) The pipeline works; this particular feature set carries
-no usable signal in this dataset. The web page shows its score next to this caveat.
+**Result: nothing beats the baseline, and nothing beats chance.** Every AUC interval includes
+0.5, and every accuracy interval includes the majority-class rate. Strong regularization is
+nominally worse than the baseline (its paired difference excludes zero, on the downside). The simplest model
+(baseline logistic regression) is therefore kept. The pipeline works; these nine baseline
+variables carry no usable signal in this dataset. The web page shows its score next to this
+caveat.
 
 ## Web page
 
-`web/index.html` is a single static page. It loads `web/model.json`, which holds the logistic
-regression coefficients, builds the form from it, and computes the score in the browser.
-There is no backend. Live at https://cipn-prediction.vercel.app (Vercel; `vercel.json` serves `web/`).
+`web/index.html` is a single static page: a form (numeric inputs for age and disease-free
+interval, dropdowns for the rest), the score, a per-input breakdown, and an About section.
+It loads `web/model.json` (baseline logistic regression coefficients and the CV table) and
+computes everything in the browser; there is no backend. Each input's contribution is its
+coefficient relative to the training-sample average for that feature, so the breakdown
+reads as "odds ×" versus the average training patient. Live at
+https://cipn-prediction.vercel.app (Vercel; `vercel.json` serves `web/`).
 
 ## Reproduce
 

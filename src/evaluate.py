@@ -21,7 +21,7 @@ from sklearn.metrics import accuracy_score, brier_score_loss, roc_auc_score
 from sklearn.model_selection import StratifiedKFold, cross_val_predict
 
 from data import audit_dose_file, build_dataset
-from models import MODELS
+from models import BASELINE, MODELS
 
 RESULTS_DIR = Path(__file__).resolve().parent.parent / "results"
 N_SPLITS, N_REPEATS, N_BOOT, SEED = 5, 10, 2000, 42
@@ -77,13 +77,16 @@ def main() -> None:
             samples = [metric_over_repeats(fn, y, preds, idx) for idx in boots]
             results[name][m] = {"estimate": est, "ci95": ci(samples)}
 
-    # Paired difference in AUC (forest - logistic) on the same bootstrap draws.
-    a, b = all_preds["Random forest"], all_preds["Logistic regression"]
-    diff = [
-        metric_over_repeats(roc_auc_score, y, a, idx) - metric_over_repeats(roc_auc_score, y, b, idx)
-        for idx in boots
-    ]
-    diff_est = metric_over_repeats(roc_auc_score, y, a) - metric_over_repeats(roc_auc_score, y, b)
+    # Paired AUC difference vs. the baseline on the same bootstrap draws.
+    base = all_preds[BASELINE]
+    base_est = metric_over_repeats(roc_auc_score, y, base)
+    base_boot = [metric_over_repeats(roc_auc_score, y, base, idx) for idx in boots]
+    diffs = {}
+    for name, preds in all_preds.items():
+        if name == BASELINE:
+            continue
+        d = [metric_over_repeats(roc_auc_score, y, preds, idx) - b0 for idx, b0 in zip(boots, base_boot)]
+        diffs[name] = {"estimate": metric_over_repeats(roc_auc_score, y, preds) - base_est, "ci95": ci(d)}
 
     majority = max(y.mean(), 1 - y.mean())
     out = {
@@ -92,7 +95,8 @@ def main() -> None:
         "cv": {"splits": N_SPLITS, "repeats": N_REPEATS, "bootstrap": N_BOOT, "seed": SEED},
         "majority_class_accuracy": float(majority),
         "models": results,
-        "auc_difference_forest_minus_logistic": {"estimate": diff_est, "ci95": ci(diff)},
+        "baseline": BASELINE,
+        "auc_difference_vs_baseline": diffs,
     }
     RESULTS_DIR.mkdir(exist_ok=True)
     (RESULTS_DIR / "cv_results.json").write_text(json.dumps(out, indent=2), encoding="utf-8")
@@ -112,14 +116,15 @@ def render_markdown(out: dict) -> str:
             for m in ("AUC", "Accuracy", "Brier")
         ]
         lines.append(f"| {name} | " + " | ".join(cells) + " |")
-    dd = out["auc_difference_forest_minus_logistic"]
     lines += [
         "",
         f"n = {d['n_patients']} patients, {d['n_positive']} positive ({d['positive_rate']:.1%}). "
         f"Majority-class accuracy = {out['majority_class_accuracy']:.3f}; chance AUC = 0.5.",
         f"{cv['repeats']}×{cv['splits']}-fold stratified CV; {cv['bootstrap']}-draw stratified patient bootstrap CIs.",
-        f"AUC difference (forest − logistic): {dd['estimate']:+.3f} "
-        f"({dd['ci95'][0]:+.3f} to {dd['ci95'][1]:+.3f}).",
+        "",
+        f"AUC difference vs. {out['baseline']} (paired bootstrap):",
+        *[f"- {n}: {v['estimate']:+.3f} ({v['ci95'][0]:+.3f} to {v['ci95'][1]:+.3f})"
+          for n, v in out["auc_difference_vs_baseline"].items()],
         "",
     ]
     return "\n".join(lines)

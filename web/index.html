@@ -3,235 +3,400 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CIPN Risk Score</title>
-<meta name="description" content="A proof-of-pipeline demo: logistic regression on public trial data. Not a medical tool.">
+<title>CIPN Risk Model · Research prototype</title>
+<meta name="description" content="A research prototype built on public trial data to demonstrate a modeling pipeline. Not a medical tool.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #f4f3ff;
-    --bg-glow: #e3e0ff;
-    --card: #ffffff;
-    --ink: #17162b;
-    --muted: #6b6a85;
-    --line: #e7e6f2;
-    --chip: #f3f2fb;
-    --chip-hover: #eae8f8;
-    --accent: #5b4bdb;
-    --accent-2: #8a7bff;
-    --accent-ink: #ffffff;
-    --shadow: 0 1px 2px rgba(23,22,43,.04), 0 12px 40px -12px rgba(60,50,160,.18);
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #100f1c;
-      --bg-glow: #221f4a;
-      --card: #1a1930;
-      --ink: #f0effa;
-      --muted: #9a98b8;
-      --line: #2b2a47;
-      --chip: #23223c;
-      --chip-hover: #2c2b4a;
-      --accent: #8a7bff;
-      --accent-2: #b3a8ff;
-      --accent-ink: #12102a;
-      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 40px -12px rgba(0,0,0,.6);
-    }
+    color-scheme: light;
+    --bg: #f6f6f3;
+    --panel: #ffffff;
+    --ink: #1f262b;
+    --muted: #5d676f;
+    --faint: #8a9298;
+    --line: #d8dbd9;
+    --line-soft: #e8eae8;
+    --accent: #2f4a5c;
+    --up: #8a4a40;
+    --down: #3d6275;
+    --note: #f1efe8;
+    --note-line: #b9b29c;
+    --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
   }
   * { box-sizing: border-box; }
-  html { -webkit-text-size-adjust: 100%; }
+  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
   body {
-    margin: 0;
-    min-height: 100vh;
-    font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    color: var(--ink);
-    background:
-      radial-gradient(900px 420px at 50% -120px, var(--bg-glow), transparent 70%),
-      var(--bg);
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 400 14px/1.55 "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
     -webkit-font-smoothing: antialiased;
   }
-  main { max-width: 560px; margin: 0 auto; padding: 56px 16px 40px; }
-  header { text-align: center; margin-bottom: 28px; }
-  h1 { margin: 0 0 8px; font-size: 28px; font-weight: 700; letter-spacing: -0.02em; }
-  header p { margin: 0; color: var(--muted); font-size: 15px; }
+  a { color: var(--accent); text-underline-offset: 2px; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 20px; }
 
-  .card {
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: 20px;
-    box-shadow: var(--shadow);
-    padding: 28px;
-  }
+  /* top bar */
+  .top { border-bottom: 1px solid var(--line); background: var(--panel); }
+  .top .wrap { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding-top: 14px; padding-bottom: 12px; flex-wrap: wrap; }
+  .brand { font-weight: 600; font-size: 14px; letter-spacing: .01em; }
+  .brand span { color: var(--faint); font-weight: 400; margin-left: 8px; }
+  nav a { font-size: 12.5px; color: var(--muted); text-decoration: none; margin-left: 20px; }
+  nav a:hover { color: var(--ink); text-decoration: underline; }
+  .banner { background: var(--note); border-bottom: 1px solid var(--line); font-size: 12px; color: var(--muted); }
+  .banner .wrap { padding-top: 7px; padding-bottom: 7px; }
+
+  /* layout */
+  main { padding: 36px 0 24px; }
+  h1 { margin: 0 0 4px; font-size: 20px; font-weight: 600; letter-spacing: -0.005em; }
+  .lede { margin: 0 0 28px; color: var(--muted); max-width: 620px; font-size: 13.5px; }
+  .grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px; align-items: start; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 2px; }
+  .card > header { padding: 11px 18px; border-bottom: 1px solid var(--line); font-size: 11.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .card .body { padding: 18px; }
+
+  /* form */
   form { display: grid; gap: 22px; }
-  fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
-  legend {
-    padding: 0; margin-bottom: 9px;
-    font-size: 13px; font-weight: 600; color: var(--muted);
-    letter-spacing: .02em;
+  fieldset { border: 0; margin: 0; padding: 0; min-width: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 14px 14px; }
+  legend { grid-column: 1 / -1; padding: 0 0 6px; margin-bottom: 2px; width: 100%; font-size: 11.5px; font-weight: 600; color: var(--faint); letter-spacing: .06em; text-transform: uppercase; border-bottom: 1px solid var(--line-soft); float: left; }
+  legend + * { clear: both; }
+  .field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .field.wide { grid-column: 1 / -1; }
+  label { font-size: 12.5px; font-weight: 500; }
+  .help { font-size: 11.5px; color: var(--faint); line-height: 1.4; }
+  input, select {
+    font: inherit; font-size: 13.5px; color: var(--ink); background: #fff;
+    border: 1px solid #bcc2c4; border-radius: 2px; padding: 7px 9px; width: 100%; height: 34px;
+    transition: border-color .15s, box-shadow .15s;
   }
-  .options { display: flex; flex-wrap: wrap; gap: 8px; }
-  .chip { position: relative; }
-  .chip input { position: absolute; opacity: 0; inset: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
-  .chip span {
-    display: block; padding: 9px 15px;
-    border-radius: 999px; border: 1px solid transparent;
-    background: var(--chip); color: var(--ink);
-    font-size: 14px; font-weight: 500;
-    transition: background .15s, color .15s, box-shadow .15s, transform .1s;
-  }
-  .chip:hover span { background: var(--chip-hover); }
-  .chip input:checked + span {
-    background: var(--accent); color: var(--accent-ink);
-    box-shadow: 0 4px 14px -4px var(--accent);
-  }
-  .chip input:focus-visible + span { outline: 2px solid var(--accent-2); outline-offset: 2px; }
-  .chip input:active + span { transform: scale(.97); }
+  select { appearance: none; padding-right: 28px; cursor: pointer;
+    background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none' stroke='%235d676f' stroke-width='1.4'%3E%3Cpath d='M1 1l4 4 4-4'/%3E%3C/svg%3E") no-repeat right 10px center; }
+  input:hover, select:hover { border-color: #8f979b; }
+  input:focus, select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .field.invalid input, .field.invalid select { border-color: var(--up); }
+  .err { font-size: 11.5px; color: var(--up); min-height: 0; }
+  .num { display: flex; align-items: center; gap: 8px; }
+  .num span { font-size: 12px; color: var(--faint); white-space: nowrap; }
+  input[type=number] { font-family: var(--mono); font-size: 13px; }
 
-  button[type=submit] {
-    margin-top: 4px;
-    appearance: none; border: 0; cursor: pointer;
-    padding: 15px 20px; border-radius: 14px;
-    font: inherit; font-size: 16px; font-weight: 600;
-    color: var(--accent-ink);
-    background: linear-gradient(135deg, var(--accent), var(--accent-2));
-    box-shadow: 0 8px 24px -8px var(--accent);
-    transition: transform .12s, box-shadow .2s, opacity .2s;
+  .actions { display: flex; align-items: center; gap: 16px; padding-top: 4px; }
+  button { font: inherit; cursor: pointer; }
+  .primary { background: var(--accent); color: #fff; border: 1px solid var(--accent); border-radius: 2px; padding: 8px 20px; font-size: 13px; font-weight: 500; letter-spacing: .01em; transition: background .15s; }
+  .primary:hover { background: #243a49; }
+  .primary:focus-visible, .link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .link { background: none; border: 0; padding: 0; color: var(--muted); font-size: 12.5px; text-decoration: underline; text-underline-offset: 2px; }
+  .link:hover { color: var(--ink); }
+
+  /* result */
+  .result { position: sticky; top: 16px; }
+  .empty { color: var(--faint); font-size: 13px; padding: 36px 0; text-align: center; }
+  .stale { display: none; margin: 0 0 12px; padding: 6px 10px; font-size: 12px; background: var(--note); border: 1px solid var(--note-line); color: var(--muted); }
+  .is-stale .stale { display: block; }
+  .is-stale .live { opacity: .4; }
+  .live { transition: opacity .2s; }
+  .scorebox { display: flex; align-items: baseline; gap: 10px; }
+  .score { font-family: var(--mono); font-size: 44px; font-weight: 400; letter-spacing: -0.02em; line-height: 1.05; }
+  .score small { font-size: 22px; color: var(--muted); }
+  .scorelabel { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .axis { position: relative; height: 34px; margin: 18px 0 6px; }
+  .axis .line { position: absolute; left: 0; right: 0; top: 12px; height: 1px; background: #aab1b4; }
+  .axis .tick { position: absolute; top: 6px; width: 1px; height: 13px; background: #aab1b4; }
+  .axis .mark { position: absolute; top: 4px; width: 3px; height: 17px; margin-left: -1px; background: var(--ink); transition: left .5s cubic-bezier(.3,.7,.2,1); }
+  .axis .ref { position: absolute; top: 7px; width: 7px; height: 7px; margin-left: -3px; border: 1px solid var(--muted); background: var(--panel); transform: rotate(45deg); top: 9px; }
+  .axis .lbl { position: absolute; top: 22px; font-size: 10.5px; color: var(--faint); font-family: var(--mono); transform: translateX(-50%); }
+  .axis .lbl:first-of-type { transform: none; }
+  .key { font-size: 11.5px; color: var(--muted); display: flex; gap: 16px; margin-bottom: 4px; }
+  .key i { display: inline-block; vertical-align: -2px; margin-right: 6px; }
+  .key .k1 { width: 3px; height: 11px; background: var(--ink); }
+  .key .k2 { width: 7px; height: 7px; border: 1px solid var(--muted); transform: rotate(45deg); vertical-align: 0; }
+
+  .note { margin: 16px 0 0; padding: 10px 12px; background: var(--note); border-left: 3px solid var(--note-line); font-size: 12.5px; color: #4a4a40; line-height: 1.5; }
+  .note strong { font-weight: 600; color: var(--ink); }
+
+  h3.sub { margin: 22px 0 4px; font-size: 11.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .subhelp { margin: 0 0 8px; font-size: 12px; color: var(--faint); }
+  table { width: 100%; border-collapse: collapse; }
+  .contrib td, .contrib th { padding: 7px 0; border-top: 1px solid var(--line-soft); font-size: 12.5px; vertical-align: middle; }
+  .contrib th { font-weight: 500; text-align: left; padding-right: 10px; }
+  .contrib td.val { color: var(--muted); padding-right: 10px; }
+  .contrib td.bar { width: 34%; }
+  .contrib td.odds { font-family: var(--mono); font-size: 12px; text-align: right; white-space: nowrap; width: 72px; }
+  .contrib td.dir { font-size: 12px; color: var(--muted); width: 76px; text-align: right; }
+  .diverge { position: relative; height: 8px; }
+  .diverge::before { content: ""; position: absolute; left: 50%; top: -3px; bottom: -3px; width: 1px; background: #aab1b4; }
+  .diverge b { position: absolute; top: 0; height: 8px; width: 0; transition: width .45s cubic-bezier(.3,.7,.2,1); }
+  .up { background: var(--up); left: 50%; }
+  .down { background: var(--down); right: 50%; }
+
+  /* about */
+  .about { border-top: 1px solid var(--line); margin-top: 40px; padding: 40px 0 8px; background: var(--panel); }
+  .about .cols { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 28px; }
+  .about h2 { margin: 0; font-size: 20px; font-weight: 600; }
+  .about .toc { position: sticky; top: 16px; align-self: start; }
+  .about .toc p { margin: 6px 0 0; font-size: 12.5px; color: var(--muted); }
+  .about section { margin-bottom: 26px; max-width: 640px; }
+  .about h4 { margin: 0 0 6px; font-size: 11.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .about p, .about li { margin: 0 0 8px; font-size: 13.5px; }
+  .about ul { margin: 0 0 8px; padding-left: 18px; }
+  .mono { font-family: var(--mono); font-size: 12.5px; }
+  .models { margin: 10px 0 6px; font-size: 12px; }
+  .models th, .models td { padding: 6px 8px 6px 0; border-top: 1px solid var(--line-soft); text-align: left; font-weight: 400; vertical-align: top; }
+  .models thead th { border-top: 0; border-bottom: 1px solid var(--line); color: var(--muted); font-weight: 500; }
+  .models td.n { font-family: var(--mono); font-size: 11.5px; white-space: nowrap; }
+  .models tr.served td:first-child { font-weight: 600; }
+  .tablewrap { overflow-x: auto; }
+  .cap { font-size: 11.5px; color: var(--faint); }
+  footer { padding: 22px 0 36px; font-size: 12px; color: var(--faint); background: var(--panel); border-top: 1px solid var(--line-soft); }
+  footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+
+  @media (max-width: 860px) {
+    .grid { grid-template-columns: 1fr; }
+    .result { position: static; }
+    .about .cols { grid-template-columns: 1fr; gap: 12px; }
+    .about .toc { position: static; }
   }
-  button[type=submit]:hover { transform: translateY(-1px); box-shadow: 0 12px 28px -8px var(--accent); }
-  button[type=submit]:active { transform: translateY(0); }
-  button[type=submit]:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 3px; }
-  .error { min-height: 18px; margin: -10px 0 -8px; color: #d6455d; font-size: 13px; text-align: center; }
-
-  .result {
-    margin-top: 22px; padding-top: 24px; border-top: 1px solid var(--line);
-    text-align: center;
-    animation: rise .45s ease both;
-  }
-  .result[hidden] { display: none; }
-  @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-  .result .label { font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
-  .score { margin: 6px 0 18px; font-size: 64px; font-weight: 700; letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums;
-    background: linear-gradient(135deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
-  .score small { font-size: 32px; font-weight: 600; }
-  .track { position: relative; height: 10px; border-radius: 999px; background: var(--chip); }
-  .fill { height: 100%; width: 0; border-radius: inherit; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width .7s cubic-bezier(.2,.8,.2,1); }
-  .base { position: absolute; top: -5px; width: 2px; height: 20px; border-radius: 2px; background: var(--ink); opacity: .55; }
-  .legend { margin-top: 12px; font-size: 12.5px; color: var(--muted); }
-
-  footer { margin-top: 22px; text-align: center; font-size: 12.5px; line-height: 1.6; color: var(--muted); }
-
   @media (max-width: 480px) {
-    main { padding-top: 36px; }
-    .card { padding: 22px 18px; border-radius: 18px; }
-    h1 { font-size: 24px; }
-    .score { font-size: 54px; }
+    fieldset { grid-template-columns: 1fr; }
+    .contrib td.bar { display: none; }
+    .score { font-size: 38px; }
   }
-  @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after { animation: none !important; transition: none !important; }
-  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
 </style>
 </head>
 <body>
-<main>
-  <header>
-    <h1>CIPN Risk Score</h1>
-    <p>Enter baseline characteristics to see the model’s score.</p>
-  </header>
+<div class="top">
+  <div class="wrap">
+    <div class="brand">CIPN Risk Model<span>Research prototype</span></div>
+    <nav><a href="#calculator">Calculator</a><a href="#about">About</a></nav>
+  </div>
+</div>
+<div class="banner"><div class="wrap">Proof of pipeline on public trial data. Not a medical tool; no clinical claims are made.</div></div>
 
-  <section class="card">
-    <form id="form" novalidate></form>
-    <div id="result" class="result" hidden aria-live="polite">
-      <div class="label">Risk score</div>
-      <div class="score"><span id="pct">0</span><small>%</small></div>
-      <div class="track"><div id="fill" class="fill"></div><div id="base" class="base"></div></div>
-      <div class="legend" id="legend"></div>
+<main class="wrap" id="calculator">
+  <h1>Baseline-input risk score</h1>
+  <p class="lede">Enter the baseline values below. The model returns a score and shows how each input moved it relative to the average patient in the training data.</p>
+
+  <div class="grid">
+    <div class="card">
+      <header>Baseline inputs</header>
+      <div class="body"><form id="form" novalidate></form></div>
     </div>
-  </section>
 
-  <footer id="foot">Proof of pipeline on public trial data. Not a medical tool.</footer>
+    <div class="card result" id="resultcard" aria-live="polite">
+      <header>Model output</header>
+      <div class="body">
+        <div id="empty" class="empty">Complete the form and select <em>Calculate score</em>.</div>
+        <div id="output" hidden>
+          <div class="stale">Inputs have changed since this score was calculated. Select Calculate score to update.</div>
+          <div class="live">
+            <div class="scorebox"><div class="score"><span id="pct">–</span><small>%</small></div></div>
+            <div class="scorelabel">Model score for the entered values</div>
+            <div class="axis" id="axis">
+              <div class="line"></div>
+              <div class="ref" id="ref"></div>
+              <div class="mark" id="mark"></div>
+            </div>
+            <div class="key"><span><i class="k1"></i>This score</span><span><i class="k2"></i><span id="refkey"></span></span></div>
+
+            <h3 class="sub">What moved the score</h3>
+            <p class="subhelp" id="subhelp"></p>
+            <table class="contrib"><tbody id="contrib"></tbody></table>
+          </div>
+          <div class="note" id="note"></div>
+        </div>
+        <div class="note" id="note0" style="margin-top:18px"></div>
+      </div>
+    </div>
+  </div>
 </main>
+
+<section class="about" id="about">
+  <div class="wrap cols">
+    <div class="toc"><h2>About</h2><p>What this is, what it is built on, and what the result means.</p></div>
+    <div id="aboutbody"></div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>Data: CALGB 40502 (NCT00785291), via Project Data Sphere. Raw data are not redistributed.</span>
+    <a href="https://github.com/Samz31012006/cipn-prediction">Source code and methods</a>
+  </div>
+</footer>
 
 <script>
 (async function () {
-  const form = document.getElementById('form');
-  let model;
-  try {
-    model = await (await fetch('model.json')).json();
-  } catch (e) {
-    form.innerHTML = '<p class="error">Could not load the model file.</p>';
-    return;
+  const $ = id => document.getElementById(id);
+  const form = $('form');
+  let M;
+  try { M = await (await fetch('model.json')).json(); }
+  catch (e) { form.innerHTML = '<p class="err">Could not load the model file.</p>'; return; }
+
+  const pc = (v, d = 0) => (v * 100).toFixed(d);
+  const f2 = v => v.toFixed(2);
+  const auc = M.cv_models[M.served_model].AUC;
+  const aucTxt = `${f2(auc.estimate)} (95% CI ${f2(auc.ci95[0])}–${f2(auc.ci95[1])})`;
+
+  /* ---------- form ---------- */
+  const groups = [
+    ['Demographics', ['agecat', 'sex_id', 'racecat']],
+    ['Disease history', ['clinstage4', 'dficat', 'strat1_taxane', 'anyvisceral']],
+    ['Tumor characteristics', ['hormone', 'her2']],
+  ];
+  const byKey = Object.fromEntries(M.fields.map(f => [f.key, f]));
+  const optLabel = {
+    strat1_taxane: 'Prior adjuvant taxane', anyvisceral: 'Visceral disease', clinstage4: 'Clinical stage',
+    hormone: 'Hormone receptor status', her2: 'HER2 status', sex_id: 'Sex', racecat: 'Race',
+  };
+  function control(f) {
+    const label = f.type === 'number' ? f.label : (optLabel[f.key] || f.label);
+    let el;
+    if (f.type === 'number') {
+      el = `<div class="num"><input id="f_${f.key}" name="${f.key}" type="number" inputmode="decimal" min="${f.min}" max="${f.max}" step="${f.step || 1}" placeholder="–" autocomplete="off"><span>${f.unit}</span></div>`;
+    } else {
+      el = `<select id="f_${f.key}" name="${f.key}"><option value="">Select…</option>` +
+        f.options.map(o => `<option value="${o.value}">${o.label}</option>`).join('') + '</select>';
+    }
+    const wide = f.help ? ' wide' : '';
+    return `<div class="field${wide}" data-key="${f.key}"><label for="f_${f.key}">${label}</label>${el}` +
+      (f.help ? `<div class="help">${f.help}</div>` : '') + `<div class="err" id="e_${f.key}"></div></div>`;
   }
+  form.innerHTML = groups.map(([g, keys]) =>
+    `<fieldset><legend>${g}</legend>${keys.map(k => control(byKey[k])).join('')}</fieldset>`).join('') +
+    `<div class="actions"><button class="primary" type="submit">Calculate score</button><button class="link" type="reset" id="reset">Clear</button></div>`;
 
-  // Build the form from the exported model definition.
-  form.innerHTML = model.fields.map(f => `
-    <fieldset>
-      <legend>${f.label}</legend>
-      <div class="options">
-        ${f.options.map(o => `
-          <label class="chip">
-            <input type="radio" name="${f.key}" value="${o.value}">
-            <span>${o.label}</span>
-          </label>`).join('')}
-      </div>
-    </fieldset>`).join('') +
-    '<div class="error" id="error" role="alert"></div>' +
-    '<button type="submit">Calculate score</button>';
-
-  const pct = document.getElementById('pct');
-  const fill = document.getElementById('fill');
-  const result = document.getElementById('result');
-  const error = document.getElementById('error');
-  const pctFmt = v => (v * 100).toFixed(0);
-
-  document.getElementById('base').style.left = `calc(${model.base_rate * 100}% - 1px)`;
-  document.getElementById('legend').textContent =
-    `Marker: ${pctFmt(model.base_rate)}% of the ${model.n_patients} training patients`;
-
-  if (model.cv_auc) {
-    const a = model.cv_auc;
-    document.getElementById('foot').innerHTML =
-      `Proof of pipeline on public trial data. Not a medical tool.<br>` +
-      `Cross-validated AUC ${a.estimate.toFixed(2)} (95% CI ${a.ci95[0].toFixed(2)}–${a.ci95[1].toFixed(2)}), ` +
-      `i.e. no better than chance.`;
+  /* ---------- scoring ---------- */
+  function resolve(f, raw) {
+    if (raw === '' || raw == null) return { error: f.type === 'number' ? 'Enter a value.' : 'Select an option.' };
+    if (f.type === 'number') {
+      const x = Number(raw);
+      if (!isFinite(x) || x < f.min || x > f.max) return { error: `Enter a value between ${f.min} and ${f.max}.` };
+      const bin = f.bins.find(b => b.max === null || x <= b.max);
+      const o = f.options.find(o => o.value === bin.value);
+      return { option: o, shown: `${x} ${f.unit} → ${o.label}` };
+    }
+    const o = f.options.find(o => o.value === raw);
+    return { option: o, shown: o.label };
   }
+  const sigmoid = z => 1 / (1 + Math.exp(-z));
 
-  function score(values) {
-    let z = model.intercept;
-    for (const f of model.fields) z += f.options.find(o => o.value === values[f.key]).coef;
-    return 1 / (1 + Math.exp(-z));
-  }
+  /* ---------- result ---------- */
+  const rows = [];
+  let calculated = false;
+  $('refkey').textContent = `Training-sample rate ${pc(M.base_rate, 1)}%`;
+  $('ref').style.left = (M.base_rate * 100) + '%';
+  $('axis').insertAdjacentHTML('beforeend',
+    [0, 25, 50, 75, 100].map(v => `<div class="tick" style="left:${v}%"></div><div class="lbl" style="left:${v}%">${v}</div>`).join(''));
 
-  let raf, settle;
-  function animate(to) {
-    cancelAnimationFrame(raf);
-    const from = Number(pct.textContent) || 0, t0 = performance.now(), dur = 600;
-    const tick = now => {
-      const k = Math.min((now - t0) / dur, 1), e = 1 - Math.pow(1 - k, 3);
-      pct.textContent = Math.round(from + (to - from) * e);
-      if (k < 1) raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    // Guarantee the final value even if frames are throttled (e.g. background tab).
-    clearTimeout(settle);
-    settle = setTimeout(() => { cancelAnimationFrame(raf); pct.textContent = to; }, dur + 80);
-  }
+  const noteHtml = `<strong>Read this first.</strong> Cross-validated AUC for this model is ${aucTxt}. That is no better than chance (0.50): the score does not separate patients who developed grade ≥ 2 sensory neuropathy from those who did not. It demonstrates a pipeline and carries no clinical meaning.`;
+  $('note0').innerHTML = noteHtml;
+  $('note').innerHTML = noteHtml;
+  $('note0').hidden = false;
 
-  form.addEventListener('change', () => { error.textContent = ''; });
   form.addEventListener('submit', ev => {
     ev.preventDefault();
-    const data = new FormData(form), values = {};
-    const missing = model.fields.filter(f => !(values[f.key] = data.get(f.key)));
-    if (missing.length) {
-      error.textContent = 'Please choose an option for: ' + missing.map(f => f.label).join(', ');
-      return;
+    const data = new FormData(form);
+    let ok = true, z = M.baseline_logit;
+    rows.length = 0;
+    let firstBad = null;
+    for (const f of M.fields) {
+      const r = resolve(f, data.get(f.key));
+      const field = form.querySelector(`[data-key="${f.key}"]`);
+      field.classList.toggle('invalid', !!r.error);
+      $('e_' + f.key).textContent = r.error || '';
+      if (r.error) { ok = false; firstBad = firstBad || field; continue; }
+      z += r.option.contribution;
+      rows.push({ name: optLabel[f.key] || f.label, shown: r.shown, c: r.option.contribution });
     }
-    const p = score(values);
-    result.hidden = false;
-    animate(Math.round(p * 100));
-    requestAnimationFrame(() => { fill.style.width = (p * 100) + '%'; });
-    result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    if (!ok) { firstBad.querySelector('input,select').focus(); return; }
+
+    const p = sigmoid(z);
+    calculated = true;
+    $('resultcard').classList.remove('is-stale');
+    $('empty').hidden = true; $('output').hidden = false; $('note0').hidden = true;
+    $('pct').textContent = pc(p);
+    $('mark').style.left = (p * 100) + '%';
+    $('subhelp').textContent =
+      `Effects are relative to the average training patient, whose score is ${pc(sigmoid(M.baseline_logit))}%. ` +
+      `“Odds ×” is the multiplier on the odds of the outcome; values near 1.00 mean little effect.`;
+
+    rows.sort((a, b) => Math.abs(b.c) - Math.abs(a.c));
+    const maxAbs = Math.max(0.5, ...rows.map(r => Math.abs(r.c)));
+    $('contrib').innerHTML = rows.map(r => {
+      const w = Math.min(50, Math.abs(r.c) / maxAbs * 50);
+      const dir = Math.abs(r.c) < 0.05 ? 'little effect' : (r.c > 0 ? 'raises' : 'lowers');
+      const cls = r.c > 0 ? 'up' : 'down';
+      return `<tr><th>${r.name}</th><td class="val">${r.shown}</td>` +
+        `<td class="bar"><div class="diverge"><b class="${cls}" data-w="${w}"></b></div></td>` +
+        `<td class="dir">${dir}</td><td class="odds">×${Math.exp(r.c).toFixed(2)}</td></tr>`;
+    }).join('');
+    setTimeout(() =>
+      document.querySelectorAll('.diverge b').forEach(b => b.style.width = b.dataset.w + '%'), 40);
+    if (matchMedia('(max-width: 860px)').matches) $('resultcard').scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
+
+  const markStale = e => {
+    const field = e.target.closest('.field');
+    if (field) { field.classList.remove('invalid'); $('e_' + field.dataset.key).textContent = ''; }
+    if (calculated) $('resultcard').classList.add('is-stale');
+  };
+  form.addEventListener('input', markStale);
+  form.addEventListener('change', markStale);
+  form.addEventListener('reset', () => {
+    calculated = false;
+    form.querySelectorAll('.invalid').forEach(x => x.classList.remove('invalid'));
+    form.querySelectorAll('.err').forEach(x => x.textContent = '');
+    $('output').hidden = true; $('empty').hidden = false; $('note0').hidden = false;
+    $('resultcard').classList.remove('is-stale');
+  });
+
+  /* ---------- about ---------- */
+  const ci = r => `${r.estimate.toFixed(3)} (${r.ci95[0].toFixed(3)}–${r.ci95[1].toFixed(3)})`;
+  const tbl = Object.entries(M.cv_models).map(([n, r]) =>
+    `<tr class="${n === M.served_model ? 'served' : ''}"><td>${n}${n === M.served_model ? ' · shown above' : ''}</td>` +
+    `<td class="n">${ci(r.AUC)}</td><td class="n">${ci(r.Accuracy)}</td><td class="n">${ci(r.Brier)}</td></tr>`).join('');
+  const diffs = Object.entries(M.auc_diff).map(([n, d]) =>
+    `${n}: ${d.estimate >= 0 ? '+' : '−'}${Math.abs(d.estimate).toFixed(3)} (${d.ci95[0].toFixed(3)} to ${d.ci95[1].toFixed(3)})`);
+
+  $('aboutbody').innerHTML = `
+    <section>
+      <h4>Summary</h4>
+      <p>Chemotherapy-induced peripheral neuropathy (CIPN) is nerve damage, typically in the hands and feet, that can follow treatment with certain chemotherapy drugs.</p>
+      <p>This page is a small research prototype. It takes nine baseline characteristics, passes them through a logistic regression model, and returns a score together with a breakdown of how each input contributed. Its purpose is to demonstrate an end-to-end modeling pipeline on real data, not to inform care.</p>
+    </section>
+    <section>
+      <h4>Data</h4>
+      <p>The model is built on the paclitaxel (control) arm of CALGB 40502, a randomized phase III breast cancer trial (NCT00785291), obtained through Project Data Sphere. ${M.n_enrolled} patients are in the baseline file; <span class="mono">${M.n_patients}</span> are analyzed.</p>
+      <ul>
+        <li><b>Outcome:</b> a maximum grade of 2 or higher for the “Neuropathy: sensory” adverse event. ${M.n_positive} of ${M.n_patients} patients (${pc(M.base_rate, 1)}%) meet it.</li>
+        <li><b>Exclusions:</b> 8 patients who never started treatment, and 3 whose event grade was recorded as unknown. Duplicate adverse-event rows were removed first.</li>
+        <li><b>Inputs:</b> age group, sex, race, prior adjuvant taxane, visceral disease, disease-free interval, clinical stage, hormone receptor status and HER2 status — baseline fields only. Outcome-related and treatment-course fields (survival, progression, response, reason treatment ended, dose discontinuation) are never used.</li>
+      </ul>
+    </section>
+    <section>
+      <h4>Evaluation</h4>
+      <p>Models were assessed with ${M.cv.repeats} repeats of stratified ${M.cv.splits}-fold cross-validation, so every patient is scored by a model that never saw them. 95% confidence intervals come from a ${M.cv.bootstrap.toLocaleString()}-draw bootstrap over patients. Hyperparameters were fixed in advance and not tuned.</p>
+      <div class="tablewrap"><table class="models">
+        <thead><tr><th>Model</th><th>AUC</th><th>Accuracy</th><th>Brier</th></tr></thead>
+        <tbody>${tbl}</tbody></table></div>
+      <p class="cap">AUC 0.50 is chance. Always predicting the majority class gives accuracy ${M.majority_accuracy.toFixed(3)}. Brier: lower is better.</p>
+      <p>Five candidates were compared: the baseline logistic regression, a more strongly regularized one, one with four pre-specified interaction terms, a random forest and a gradient-boosted model. Paired AUC differences against the baseline:</p>
+      <ul>${diffs.map(d => `<li class="mono">${d}</li>`).join('')}</ul>
+      <p>No candidate improved on the baseline, so the simplest model was kept.</p>
+    </section>
+    <section>
+      <h4>What the result means</h4>
+      <p>With these nine baseline inputs and ${M.n_patients} patients, no model tried separates the two outcome groups better than chance: every AUC interval includes 0.50, and accuracy does not beat the majority-class rate. The score on this page therefore carries no usable information about an individual.</p>
+      <p>The pipeline itself — cleaning, label construction, leakage control, cross-validated evaluation, and serving — is the product. A larger sample, or inputs that vary more between patients, would be needed before any model like this could be informative.</p>
+    </section>
+    <section>
+      <h4>Limitations</h4>
+      <ul>
+        <li>Small sample, single trial arm, one population; no external validation.</li>
+        <li>Some categories are tiny (for example, 8 HER2-positive patients and a handful with unknown values), so their estimated effects are unstable. The breakdown shows them as the model sees them.</li>
+        <li>The breakdown describes the fitted model, not causes.</li>
+        <li>Not a medical tool. It must not be used for any decision about care.</li>
+      </ul>
+    </section>`;
 })();
 </script>
 </body>
