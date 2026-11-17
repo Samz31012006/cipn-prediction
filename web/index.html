@@ -120,6 +120,8 @@
   .contrib td.val { color: var(--muted); padding-right: 10px; }
   .contrib td.bar { width: 34%; }
   .contrib td.odds { font-family: var(--mono); font-size: 12px; text-align: right; white-space: nowrap; width: 72px; }
+  .contrib td.odds.u { color: var(--up); }
+  .contrib td.odds.d { color: var(--down); }
   .contrib td.dir { font-size: 12px; color: var(--muted); width: 76px; text-align: right; }
   .diverge { position: relative; height: 8px; }
   .diverge::before { content: ""; position: absolute; left: 50%; top: -3px; bottom: -3px; width: 1px; background: #aab1b4; }
@@ -149,15 +151,32 @@
   footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 
   @media (max-width: 860px) {
-    .grid { grid-template-columns: 1fr; }
+    .grid { grid-template-columns: minmax(0, 1fr); }
     .result { position: static; }
-    .about .cols { grid-template-columns: 1fr; gap: 12px; }
+    .about .cols { grid-template-columns: minmax(0, 1fr); gap: 12px; }
     .about .toc { position: static; }
   }
   @media (max-width: 480px) {
-    fieldset { grid-template-columns: 1fr; }
-    .contrib td.bar { display: none; }
+    .wrap { padding: 0 16px; }
+    main { padding-top: 24px; }
+    h1 { font-size: 18px; }
+    nav a { margin: 0 16px 0 0; }
+    .card .body { padding: 16px 14px; }
+    fieldset { grid-template-columns: minmax(0, 1fr); }
+    /* 16px inputs stop iOS Safari zooming on focus; 44px meets touch-target guidance */
+    input, select { font-size: 16px !important; height: 44px; }
+    .primary { padding: 12px 22px; font-size: 14px; flex: 1; }
+    .link { padding: 12px 4px; }
+    .actions { gap: 12px; }
     .score { font-size: 38px; }
+    .contrib td.bar { display: none; }
+    .contrib td.dir { display: none; }
+    .contrib td.val { font-size: 12px; }
+    .contrib td.odds { width: 58px; }
+    .key { flex-wrap: wrap; gap: 6px 16px; }
+    .about { margin-top: 28px; padding-top: 28px; }
+    .models td, .models th { padding-right: 10px; }
+    footer .wrap { flex-direction: column; gap: 6px; }
   }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
 </style>
@@ -327,7 +346,7 @@
       const cls = r.c > 0 ? 'up' : 'down';
       return `<tr><th>${r.name}</th><td class="val">${r.shown}</td>` +
         `<td class="bar"><div class="diverge"><b class="${cls}" data-w="${w}"></b></div></td>` +
-        `<td class="dir">${dir}</td><td class="odds">×${Math.exp(r.c).toFixed(2)}</td></tr>`;
+        `<td class="dir">${dir}</td><td class="odds ${Math.abs(r.c) < 0.05 ? '' : (r.c > 0 ? 'u' : 'd')}">×${Math.exp(r.c).toFixed(2)}</td></tr>`;
     }).join('');
     setTimeout(() =>
       document.querySelectorAll('.diverge b').forEach(b => b.style.width = b.dataset.w + '%'), 40);
